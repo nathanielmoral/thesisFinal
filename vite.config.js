@@ -23,7 +23,7 @@ export default defineConfig({
         manifest: true,
         minify: 'esbuild',
         target: 'esnext',
-    worker: true,
-    threads: 4  
+        worker: true, 
+        threads: 4,   
     },
 });
