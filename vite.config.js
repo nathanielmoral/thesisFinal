@@ -26,5 +26,7 @@ export default defineConfig({
         outDir: 'public/build',
         assetsDir: '',
         manifest: true,
+        minify: 'esbuild',
+        target: 'esnext',
     },
 });
