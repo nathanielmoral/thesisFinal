@@ -11,15 +11,15 @@ class BlockAndLot extends Model
         'lot',
         'status',
         'user_id',
+        'family_id', 
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id', 'id','block_lot_id');
     }
     public function family()
     {
         return $this->belongsTo(Family::class, 'family_id', 'id');
     }
-
 }

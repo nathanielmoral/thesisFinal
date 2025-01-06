@@ -13,13 +13,16 @@ function ResidentTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-  const [entriesPerPage, setEntriesPerPage] = useState(5);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const location = useLocation(); 
   const crumbs = getBreadcrumbs(location);
   const [successMessage, setSuccessMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
   const [showImportLoader, setShowImportLoader] = useState(false);
+  const capitalizeFirstLetter = (string) => {
+    return string.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   useEffect(() => {
     const loadResidents = async () => {
@@ -46,18 +49,22 @@ function ResidentTable() {
     let filtered = residentData;
 
     if (searchTerm) {
-      filtered = filtered.filter((record) =>
-        `${record.firstName} ${record.lastName}`
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (record) =>
+          `${record.firstName || ''} ${record.lastName || ''}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     }
-
+    
     if (roleFilter) {
       filtered = filtered.filter(
-        (record) => record.residency_status.toLowerCase() === roleFilter.toLowerCase()
+        (record) =>
+          record.role &&
+          record.role.toLowerCase() === roleFilter.toLowerCase()
       );
     }
+    
 
     setFilteredData(filtered);
   }, [searchTerm, roleFilter, residentData]);
@@ -297,13 +304,15 @@ function ResidentTable() {
                     key={index}
                     className={`${index % 2 === 0 ? "bg-gray-50" : ""} hover:bg-gray-100`}
                     >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        {`${record.firstName} ${record.middleName || ""} ${record.middleInitial || ""} ${record.lastName}`.trim()}
-                    </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {capitalizeFirstLetter(
+                      `${record.firstName} ${record.middleName || ""} ${record.middleInitial || ""} ${record.lastName}`.trim()
+                    )}
+                  </td>
                     <td className="px-6 py-4 whitespace-nowrap">{record.block}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{record.lot}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{record.role}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{record.nameOfOwner}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{capitalizeFirstLetter(record.nameOfOwner)}</td>
                     </tr>
                 ))}
             </tbody>

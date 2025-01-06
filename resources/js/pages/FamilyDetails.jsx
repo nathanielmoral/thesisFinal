@@ -72,6 +72,7 @@ const FamilyDetails = () => {
     setLoading(true);
     setMessage(''); // Clear previous message
     setError(''); // Clear previous error
+    
 
     try {
       const familyId = `${family.block}-${family.lot}`;
@@ -104,44 +105,85 @@ const FamilyDetails = () => {
       setLoading(false);
     }
   };
-
   
-  const changeAccountHolder = async (tenantId) => {
-      try {
-          setLoading(true);
-          const response = await fetch(`/api/user/tenants/holder/${tenantId}`, {
-              method: 'PUT',
-          });
-          
-          await response.json();
-
-          if (response.ok) {
-            const updatedFamily = await fetchDetailsFamily(family.block, family.lot);
-            const updatedTenants = await fetchDetailsFamilyTenants(family.block, family.lot);
-            if (updatedFamily && typeof updatedFamily === 'object' && Array.isArray(updatedFamily.members)) {
-              setFamily(updatedFamily);
-              setTenants(updatedTenants); 
-      
-              // Use the helper function to update the account holder
-              const accountHolder = getAccountHolder(updatedFamily);
-              setCurrentAccountHolderState(accountHolder ? accountHolder.id : null);
-      
-              setError(''); // Clear error since we successfully updated and fetched new data
-            } else {
-              setError('Failed to reload updated family details.');
-              setMessage(''); // Clear success message on error
-            }
-          } else {
-              setError("Failed to update account holder");
-              setMessage(''); // Clear success message on error
-          }
-      } catch (error) {
-          setError("Error updating account holder");
-          setMessage(''); // Clear success message on error
-      } finally {
-        setLoading(false)
+  const changeAccountHolder = async (tenantId, tenantBirthdate) => {
+    try {
+      setLoading(true);
+  
+      // Check age limit
+      const age = computeAge(tenantBirthdate);
+      if (age < 18) {
+        toast.error("Must be at least 18 years old to become the account holder", {
+          position: "top-right",
+          autoClose: 3000, // Optional: auto-close after 3 seconds
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        setLoading(false);
+        return;
       }
-    };
+  
+      // Fetch tenant data
+      const response = await fetch(`/api/user/tenants/holder/${tenantId}`, {
+        method: "PUT",
+      });
+  
+      if (!response.ok) {
+        toast.error("Failed to update account holder", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        setLoading(false);
+        return;
+      }
+  
+      // Handle successful response
+      const updatedFamily = await fetchDetailsFamily(family.block, family.lot);
+      const updatedTenants = await fetchDetailsFamilyTenants(family.block, family.lot);
+  
+      if (updatedFamily && typeof updatedFamily === "object" && Array.isArray(updatedFamily.members)) {
+        setFamily(updatedFamily);
+        setTenants(updatedTenants);
+  
+        // Use the helper function to update the account holder
+        const accountHolder = getAccountHolder(updatedFamily);
+        setCurrentAccountHolderState(accountHolder ? accountHolder.id : null);
+  
+        toast.success("Account holder updated successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      } else {
+        toast.error("Failed to reload updated family details.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred while updating the account holder", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Helper function to compute age from birthdate
+  const computeAge = (birthdate) => {
+    if (!birthdate) return "N/A";
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+  
 
     if (loading) {
       return (
@@ -158,9 +200,9 @@ const FamilyDetails = () => {
       <Breadcrumbs crumbs={crumbs} />
     </div>
 
-    <h1 className="text-left text-4xl font-sans font-bold p-4">Family Details</h1>
+    <h1 className="text-left text-4xl font-poppins font-semibold p-4">Homeowner Details</h1>
 
-    <div className="overflow-x-auto border-y border-gray-300 shadow-sm">
+    <div className="overflow-x-auto shadow-sm">
     <table className="table-auto min-w-full bg-white">
     <thead className="bg-gray-50">
       <tr>
@@ -175,6 +217,12 @@ const FamilyDetails = () => {
         </th>
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
           Email
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Birthday
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Age
         </th>
         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
           Account Holder
@@ -191,6 +239,8 @@ const FamilyDetails = () => {
                 <td className="px-6 py-4 whitespace-nowrap">{member.gender}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{member.contact_number}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{member.email}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{member.birthdate}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{computeAge(member.birthdate)}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                     <input
                       type="radio"
@@ -206,7 +256,7 @@ const FamilyDetails = () => {
             ))
           ) : (
             <tr>
-              <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+              <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                 No members found.
               </td>
             </tr>
@@ -215,7 +265,7 @@ const FamilyDetails = () => {
       </table>
       </div>
 
-      <h1 className="text-left text-4xl font-bold font-sans p-4 mt-10">Tenants</h1>
+      <h1 className="text-left text-4xl font-poppins font-semibold p-4 mt-10">Tenants Details</h1>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -233,6 +283,18 @@ const FamilyDetails = () => {
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
           Email
         </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Block
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Lot
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Birthday
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Age
+        </th>
         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
           Account Holder
         </th>
@@ -247,7 +309,11 @@ const FamilyDetails = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{member.gender}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{member.contact_number}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{member.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{member.email || "Not Provided"}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{member.block}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{member.lot}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{member.birthdate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{computeAge(member.birthdate)}</td>
                   <td className="px-6 py-4 text-center whitespace-nowrap">
                     <label className={`relative inline-flex items-center ${member.is_account_holder == 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                           <input
@@ -255,7 +321,7 @@ const FamilyDetails = () => {
                               className="sr-only"
                               checked={member.is_account_holder == 1}
                               disabled={member.is_account_holder == 1}
-                              onChange={() => changeAccountHolder(member.id)}
+                              onChange={() => changeAccountHolder(member.id, member.birthdate)}
                           />
                           <span className={`w-11 h-6  rounded-full ${
                                   member.is_account_holder == 1 ? ' bg-green-600' : 'bg-gray-200'
@@ -271,7 +337,7 @@ const FamilyDetails = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                <td colSpan="9" className="px-6 py-4 text-center text-gray-500">
                   No members found.
                 </td>
               </tr>

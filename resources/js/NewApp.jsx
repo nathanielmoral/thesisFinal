@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate,Navigate } from 'react-router-dom';
 import Header from './components/header';
 import CustomSidebar from './components/sidebar';
 import UsersTable from './pages/Registrant';
@@ -28,15 +28,16 @@ import AdminCreateSchedule from './pages/AdminCreateSchedule';
 import AdminSpamNotifications from './pages/AdminSpamNotifications'; 
 import AdminBlockAndLots from './pages/AdminBlockAndLots'; 
 import AdminPaymentHistory from './pages/AdminPaymentHistory'; 
-import AdminPaymentProcess from './pages/AdminPaymentProcess'; 
 import AdminPaymentApproved from './pages/AdminPaymentApproved'; 
-import AdminPaymentRejected from './pages/AdminPaymentRejected'; 
 import AdminPaymentDelayed from './pages/AdminPaymentDelayed'; 
 import AdminSettings from './pages/AdminSettings'; 
 import ViewSchedules from './pages/ViewSchedules'; 
 import UserNotificationDetails from "./pages/UserNotificationDetails";
 import Feedback from './pages/Feedback'; 
-
+import AssignFeeForm from './pages/AssignFeeForm';
+import UserFeesPage from './pages/UserFeesPage';
+import Fees from './pages/Fees';
+import PaymentPage from './pages/PaymentPage';
 
 function NewApp() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(window.innerWidth < 1024);
@@ -138,9 +139,28 @@ function NewApp() {
             <Route path="/AdminSpamNotifications" element={<ProtectedRoute><AdminSpamNotifications /></ProtectedRoute>} />
             <Route path="/AdminBlockAndLots" element={<ProtectedRoute><AdminBlockAndLots /></ProtectedRoute>} />
             <Route path="/AdminPaymentHistory" element={<ProtectedRoute><AdminPaymentHistory /></ProtectedRoute>} />
-            <Route path="/AdminPaymentProcess" element={<ProtectedRoute><AdminPaymentProcess /></ProtectedRoute>} />
-            <Route path="/AdminPaymentRejected" element={<ProtectedRoute><AdminPaymentRejected /></ProtectedRoute>} />
-            <Route path="/AdminPaymentApproved" element={<ProtectedRoute><AdminPaymentApproved /></ProtectedRoute>} />
+            <Route path="/PaymentPage" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
+
+            
+            <Route path="/users/:userId/fees" element={<UserFeesPage />} />
+            <Route path="/Fees" element={<ProtectedRoute><Fees /></ProtectedRoute>} />
+            <Route path="/assignfee" element={<ProtectedRoute><AssignFeeForm /></ProtectedRoute>} />
+
+            <Route
+          path="/AdminPaymentApproved"
+          element={<Navigate to="/AdminPaymentApproved/approved" replace />}
+        />
+
+        {/* Dynamic Route for Approved, Rejected, and Pending */}
+        <Route
+          path="/AdminPaymentApproved/:type"
+          element={
+            <ProtectedRoute>
+              <AdminPaymentApproved />
+            </ProtectedRoute>
+          }
+        />
+
             <Route path="/AdminPaymentDelayed" element={<ProtectedRoute><AdminPaymentDelayed /></ProtectedRoute>} />
             <Route path="/AdminSettings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
             <Route path="/500" element={<Error500Page />} />

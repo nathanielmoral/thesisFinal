@@ -32,7 +32,11 @@ const FileUpload = ({ onFileChange }) => {
                 className="w-full p-2 border border-gray-300 rounded-lg shadow-sm mt-2"
             />
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-            {file && <p className="text-green-500 mt-2">File selected: {file.name}</p>}
+            {file && (
+                    <p className="text-green-500 mt-2 truncate overflow-hidden whitespace-nowrap">
+                        File selected: <span className="font-semibold">{file.name}</span>
+                    </p>
+                )}
         </div>
     );
 };

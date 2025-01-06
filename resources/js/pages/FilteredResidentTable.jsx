@@ -7,8 +7,11 @@ function FilteredResidentTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-  const [entriesPerPage, setEntriesPerPage] = useState(5);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const capitalizeFirstLetter = (string) => {
+    return string.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   useEffect(() => {
     const loadResidents = async () => {
@@ -164,11 +167,11 @@ function FilteredResidentTable() {
                     index % 2 === 0 ? "bg-gray-50" : ""
                   } hover:bg-gray-100`}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {`${record.firstName} ${record.middleName || ""} ${
-                      record.middleInitial || ""
-                    } ${record.lastName}`.trim()}
-                  </td>
+               <td className="px-6 py-4 whitespace-nowrap">
+                  {capitalizeFirstLetter(
+                    `${record.firstName} ${record.middleName || ""} ${record.middleInitial || ""} ${record.lastName}`.trim()
+                  )}
+                </td>
                   <td className="px-6 py-4 whitespace-nowrap">{record.address}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {record.residency_status}

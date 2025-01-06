@@ -118,9 +118,8 @@ const CustomSidebar = ({ isCollapsed: initialIsCollapsed, toggleSidebar }) => {
                 </span>
                 {/* Payment Submenu */}
                 <div className="px-2 space-y-1 ">
-                  <Link to="/AdminPaymentApproved" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Approved Payments</Link>
-                  <Link to="/AdminPaymentProcess" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Pending Payments</Link>
-                  <Link to="/AdminPaymentRejected" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Rejected Payments</Link>
+                <Link to="/AdminPaymentApproved" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Payments</Link>
+                  <Link to="/PaymentPage" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Manage Fees</Link>
                   <Link to="/AdminPaymentDelayed" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Delayed Payments</Link>
                 </div>
               </div>
@@ -130,21 +129,18 @@ const CustomSidebar = ({ isCollapsed: initialIsCollapsed, toggleSidebar }) => {
           {!isSidebarCollapsed && activeMenu === 'payments' && (
             <div className="pl-12 space-y-1">
               <Link to="/AdminPaymentApproved" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-sm">
-              Approved Payments
+              Payments
               </Link>
-              <Link to="/AdminPaymentProcess" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-sm">
-              Pending Payments
+              <Link to="/PaymentPage" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-sm">
+              Manage Fees
               </Link>
-              <Link to="/AdminPaymentRejected" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-sm">
-              Rejected Payments
-              </Link>
+
               <Link to="/AdminPaymentDelayed" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-sm">
               Delayed Payments
               </Link>
             </div>
           )}
         </div>
-
         {/* Announcements Link */}
         <div
           className="relative group"
@@ -252,11 +248,11 @@ const CustomSidebar = ({ isCollapsed: initialIsCollapsed, toggleSidebar }) => {
           <Link to="/residentrecords" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-sm">Residents Record</Link>
         </div>
       )}
+      <Link to="/Fees" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">Fees</Link>
       <Link to="/board-of-directors" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">Board of Directors</Link>
       <Link to="/Feedback" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">Feedback</Link>
       <Link to="/houselist" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">House List</Link>
       <Link to="/AdminBlockAndLots" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">Block and Lots</Link>
-      <Link to="/AdminSettings" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">System Settings</Link>
       {/* <Link to="/AdminSpamNotifications" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">Notification</Link>
       <Link to="/viewSchedules" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">Payment Setup</Link> */}
     </div>
@@ -278,19 +274,17 @@ const CustomSidebar = ({ isCollapsed: initialIsCollapsed, toggleSidebar }) => {
         {activeSubmenu === 'user' && (
           <div className="px-2 space-y-1">
             <Link to="/users" className="block px-4 py-2 bg-[#FFAB41] hover:text-white ">User List</Link>
-            {/* <Link to="/registrant" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Applicants</Link> */}
             <Link to="/residentrecords" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Residents Record</Link>
           </div>
         )}
       </div>
       <div className="px-2 space-y-1">
+      <Link to="/Fees" className="block text-gray-700 hover:bg-[#FFD181] hover:text-white px-4 py-2 text-base">Fees</Link>
       <Link to="/board-of-directors" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Board of Directors</Link>
       <Link to="/Feedback" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Feedback</Link>
       <Link to="/houselist" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">House List</Link>
       <Link to="/AdminBlockAndLots" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Block and Lots</Link>
-      <Link to="/AdminSettings" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">System Settings</Link>
-      {/* <Link to="/AdminSpamNotifications" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Notification</Link>
-      <Link to="/viewSchedules" className="block px-4 py-2 hover:bg-[#FFAB41] hover:text-white">Payment Setup</Link> */}
+  
       </div>
     </div>
   )}

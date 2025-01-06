@@ -20,7 +20,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "app-DnvGcp9w.css",
+    "file": "app-v3v1PBbp.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -35,16 +35,16 @@
     "isEntry": true
   },
   "resources/js/NewApp.jsx": {
-    "file": "NewApp-DclLDZKD.js",
+    "file": "NewApp-pryh6Nsj.js",
     "name": "NewApp",
     "src": "resources/js/NewApp.jsx",
     "isEntry": true,
     "css": [
-      "NewApp-DjEWzIPG.css"
+      "NewApp-zaCrsI3R.css"
     ]
   },
   "resources/js/app.jsx": {
-    "file": "app-BQHVf5sm.js",
+    "file": "app-DdNJXYHj.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,

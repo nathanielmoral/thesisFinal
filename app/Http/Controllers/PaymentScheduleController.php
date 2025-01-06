@@ -58,6 +58,7 @@ class PaymentScheduleController extends Controller
 
 
     
+
     public function fetchaccountholders(Request $request)
     {
          // Kunin ang mga account holders lamang
@@ -65,7 +66,7 @@ class PaymentScheduleController extends Controller
             ->when($request->filled('block'), function ($query) use ($request) {
                 $query->where('block', $request->block);
             })
-            ->get(['id', 'firstName', 'lastName', 'block', 'lot']);
+            ->get(['id', 'firstName', 'lastName', 'block', 'lot','email', 'account_number']);
 
         return response()->json($users);
     }

@@ -16,6 +16,11 @@ export default defineConfig({
         }),
         react(),
     ],
+    resolve: {
+        alias: {
+            jquery: 'jquery/dist/jquery.min.js',
+        },
+    },
     build: {
         outDir: 'public/build',
         assetsDir: '',

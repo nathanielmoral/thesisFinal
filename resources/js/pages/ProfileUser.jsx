@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import UserInformation from './userInfo';
 import UserAccountSettings from './UserAccountSetting';
+import MemberManagement from './MemberManagement';
 import UserSidebar from './userSidebar'; 
 import Dashboard from './Dashboard'; 
 import Tenants from './Tenants'; 
+import PaymentHistoryUser from './PaymentHistoryUser';
 import { fetchUserDetails } from '../api/user'; 
 import ClipLoader from 'react-spinners/ClipLoader'; 
 import ProtectedRoute from '../components/ProtectedRoute'; 
@@ -62,6 +64,7 @@ const UserProfile = () => {
   };
 
 
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -94,7 +97,9 @@ const UserProfile = () => {
           <Routes>
             <Route path="/" element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ProtectedRoute><Dashboard user={user} /></ProtectedRoute>} />
+            <Route path="PaymentHistoryUser" element={<ProtectedRoute><PaymentHistoryUser user={user} /></ProtectedRoute>} />
             <Route path="tenants" element={<ProtectedRoute><Tenants user={user} /></ProtectedRoute>} />
+            <Route path="membermanagement" element={<ProtectedRoute><MemberManagement user={user} /></ProtectedRoute>} />
             <Route path="user-info" element={<ProtectedRoute><UserInformation user={user} /></ProtectedRoute>} />
             <Route 
               path="user-account-settings" 

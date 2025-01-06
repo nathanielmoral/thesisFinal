@@ -16,9 +16,17 @@ class FamilyController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);
-
+    
         // Kunin ang user gamit ang user_id
         $user = User::findOrFail($request->input('user_id'));
+    
+        // Calculate the age of the user
+        $age = $this->calculateAge($user->birthdate);
+    
+        // Check if the user is 18 years or older
+        if ($age < 18) {
+            return response()->json(['error' => 'User must be at least 18 years old to be the account holder.'], 400);
+        }
     
         // Hanapin ang Family record gamit ang block at lot ng user
         $family = Family::where('block', $user->block)
@@ -61,7 +69,17 @@ class FamilyController extends Controller
     
         return response()->json(['message' => 'Account holder updated successfully.']);
     }
-    
+
+    // Helper function to calculate age from birthdate
+        private function calculateAge($birthdate)
+        {
+            $today = new \DateTime();
+            $birthDate = new \DateTime($birthdate);
+            $age = $today->diff($birthDate)->y;
+
+            return $age;
+        }
+            
 
     public function getFamilyDetails($block, $lot)
     {
@@ -94,6 +112,15 @@ class FamilyController extends Controller
 
         return response()->json($family);
     }
+
+    public function getAllFamilies()
+{
+    // Kunin lahat ng data mula sa 'families' table at ayusin by 'lot' in ascending order
+    $families = Family::orderBy('lot', 'asc')->get(); // Lahat ng data, sorted by 'lot'
+
+    return $families; // Ibalik ang lahat ng families
+}
+
 
     
     

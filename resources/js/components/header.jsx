@@ -185,11 +185,17 @@ const Header = () => {
                     </button>
                     {activeMenu === 'payments' && (
                       <div className="pl-8 space-y-1">
-                        <Link to="/process-payments" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
-                          Process Payments
+                        <Link to="/AdminPaymentApproved" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
+                           Approved Payments
                         </Link>
-                        <Link to="/payment-history" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
-                          Payment History
+                        <Link to="/AdminPaymentProcess" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
+                         Pending Payments
+                        </Link>
+                        <Link to="/AdminPaymentRejected" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
+                          Rejected Payments
+                        </Link>
+                        <Link to="/AdminPaymentDelayed" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
+                         Delayed Payments
                         </Link>
                       </div>
                     )}
@@ -227,9 +233,6 @@ const Header = () => {
                             <Link to="/users" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
                               User List
                             </Link>
-                            <Link to="/registrant" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
-                              Applicants
-                            </Link>
                             <Link to="/residentrecords" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
                               Residents Record
                             </Link>
@@ -238,14 +241,17 @@ const Header = () => {
                         <Link to="/board-of-directors" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
                           Board of Directors
                         </Link>
+                        <Link to="/Feedback" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
+                         Feedback
+                        </Link>
                         <Link to="/houselist" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
                           House List
                         </Link>
-                        <Link to="/AdminSpamNotifications" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
-                          Notification
+                        <Link to="/AdminBlockAndLots" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
+                        Block and Lots
                         </Link>
-                        <Link to="/viewSchedules" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
-                          Payment Setup
+                        <Link to="/AdminSettings" className="block text-gray-700 hover:bg-orange-100 px-4 py-2">
+                        System Settings
                         </Link>
                       </div>
                     )}

@@ -184,6 +184,9 @@ const BlockAndLotTable = () => {
                   Lot
                 </th>
                 <th scope="col" className="px-6 py-3">
+                  Homeowner
+                </th>
+                <th scope="col" className="px-6 py-3">
                   Status
                 </th>
                 <th scope="col" className="px-6 py-3">
@@ -211,6 +214,11 @@ const BlockAndLotTable = () => {
                       {block.block}
                     </td>
                     <td className="px-6 py-4">{block.lot}</td>
+                    <td className="px-6 py-4">
+                      {block.firstName || block.middleName || block.lastName 
+                        ? `${block.firstName || ''} ${block.middleName || ''} ${block.lastName || ''}`.trim() 
+                        : "Unassigned"}
+                    </td>
                     <td
                       className={`px-6 py-4 font-bold ${
                          block.status === "Occupied"

@@ -1,4 +1,4 @@
-import PaymentTable  from '../components/PaymentTable';
+/*import PaymentTable  from '../components/PaymentTable';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -13,7 +13,6 @@ const AdminPaymentProcess = () => {
         <div className="p-4">
         <ToastContainer />
 
-     {/* BreadCrumbs Section */}
       <div className="bg-white rounded-md mb-6">
         <Breadcrumbs crumbs={crumbs} />
       </div>
@@ -25,4 +24,4 @@ const AdminPaymentProcess = () => {
     );
 };
 
-export default AdminPaymentProcess;
+export default AdminPaymentProcess;*/

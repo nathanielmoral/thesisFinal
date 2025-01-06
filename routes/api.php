@@ -18,9 +18,32 @@ use App\Http\Controllers\ContactInfoController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\UserPaymentController;
 use App\Http\Controllers\AdminPaymentController;
+use App\Http\Controllers\FeeController;
+
 
 Route::get('/feedbackIndex', [FeedbackController::class, 'index']);
 Route::post('/feedback', [FeedbackController::class, 'store']);
+Route::get('/fees', [FeeController::class, 'index']); // Fetch all fees
+Route::post('/fees/add', [FeeController::class, 'store']); // Add a fee
+Route::put('/fees/{fee}', [FeeController::class, 'update']); // Update a fee
+Route::delete('/fees/{fee}', [FeeController::class, 'destroy']);
+Route::post('/fees/assign', [FeeController::class, 'assignFee']);
+Route::get('/users/account-holders', [FeeController::class, 'getAccountHolders']);
+Route::get('/fees/all', [FeeController::class, 'fetchAllFees']);
+Route::get('/users/{userId}/fees', [FeeController::class, 'getUserFees']);
+Route::delete('/user/fees/{id}', [FeeController::class, 'deleteFee']);
+Route::post('/block-lot-fees/{id}/updatePayment', [FeeController::class, 'updatePayment']);
+
+Route::get('/approved/payments/user', [UserPaymentController::class, 'getApprovedPaymentsUser']);
+Route::get('/rejected/payments/user', [UserPaymentController::class, 'getRejectedPaymentsUser']);
+
+Route::post('/payment/account-details', [FeeController::class, 'fetchAccountDetails']);
+Route::post('/payment/transaction', [FeeController::class, 'savePaymentTransaction']);
+
+Route::get('/feedbackIndex', [FeedbackController::class, 'index']);
+Route::post('/feedback', [FeedbackController::class, 'store']);
+Route::delete('/feedback/{id}', [FeedbackController::class, 'destroy']);
+Route::post('/feedback/{id}/reply', [FeedbackController::class, 'reply']);
 
 
 Route::get('/contact-show', [ContactInfoController::class, 'show']);
@@ -49,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/families/{block}-{lot}', [FamilyController::class, 'getFamilyDetails']);
 Route::get('/families/tenants/{block}-{lot}', [FamilyController::class, 'getFamilyTenantDetails']);
 Route::put('/families/{familyId}/account-holder', [FamilyController::class, 'updateAccountHolder']);
+Route::get('/families', [FamilyController::class, 'getAllFamilies']);
 
 
 // Authentication routes
@@ -72,6 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/users/reject/{userId}', [UserController::class, 'reject']);
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{userId}', [UserController::class, 'update']);
+
     Route::post('/users/{userId}/update-email-username', [UserController::class, 'updateEmailAndUsername']);
     Route::delete('/users/{userId}', [UserController::class, 'delete']);
     Route::get('/approved-users/gender-count', [UserController::class, 'getApprovedUsersCountByGender']);
@@ -79,8 +104,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/update-password', [UserController::class, 'updatePassword']);
     Route::get('/users/me', [UserController::class, 'me']);
     Route::post('/change-password', [UserController::class, 'ChangePassword']);
+    Route::put('/users/{userId}/update-info', [UserController::class, 'updateInfo']);
     Route::get('/user/profile', [UserController::class, 'getUserProfile']);
 });
+
 
 Route::post('/check-email', [UserController::class, 'checkEmail']);
 
@@ -137,7 +164,7 @@ Route::post('/payments/proof-of-payment', [PaymentController::class, 'storeProof
 Route::get('/user/active-years', [UserPaymentController::class, 'getActivatedYears']);
 Route::get('/user/{user}/payments/{year}', [UserPaymentController::class, 'getPaymentsByYear']);
 Route::post('/user/{user}/payments', [UserPaymentController::class, 'addPayment']);
-Route::get('/payments/total-approved', [UserPaymentController::class, 'getTotalApprovedPayments']);
+
 
 Route::get('/pending-payments', [UserPaymentController::class, 'getPendingPayments']);
 Route::get('/approved-payments', [UserPaymentController::class, 'getApprovedPayments']);
@@ -146,7 +173,9 @@ Route::post('/admin/payments/approve', [UserPaymentController::class, 'approvePa
 Route::post('/admin/payments/reject', [UserPaymentController::class, 'rejectPayment']);
 Route::get('/admin/delayed-payments', [UserPaymentController::class, 'getDelayedPayments']);
 
+Route::get('/user/{userId}/owned-blocks-lots', [ResidentController::class, 'getOwnedBlocksLots']);
 Route::get('/blocks-lots', [ResidentController::class, 'getBlockAndLot']);
+Route::get('/blocks-lots/occupied', [ResidentController::class, 'getOccupiedBlockAndLot']);
 Route::post('/blocks-lots', [ResidentController::class, 'newBlockLot']);
 Route::put('/blocks-lots/{id}', [ResidentController::class, 'updateBlockLot']);
 Route::delete('/blocks-lots/{id}', [ResidentController::class, 'deleteBlockLot']);
@@ -155,8 +184,16 @@ Route::put('/settings/spam-notifications', [UserPaymentController::class, 'updat
 Route::get('/settings/spam-notifications', [UserPaymentController::class, 'getSpamNotifications']);
 Route::get('/settings/monthly-payment', [UserPaymentController::class, 'getMonthlyPaymentAmount']);
 Route::post('/settings/update', [UserPaymentController::class, 'updateSettings']);
+Route::get('/settings', [UserPaymentController::class, 'getSettings']);
+
 Route::get('/user/tenants/{user}', [UserPaymentController::class, 'getMyTenants']);
 Route::post('/user/tenants/new', [UserPaymentController::class, 'addNewTenant']);
+Route::get('/user/member/get/{user}', [UserPaymentController::class, 'getMyMember']);
+
+Route::post('/user/members/new', [UserPaymentController::class, 'addNewMember']);
+Route::put('/user/members/{id}', [UserPaymentController::class, 'updateMember']);
+Route::delete('/user/members/{id}', [UserPaymentController::class, 'destroy']);
+
 Route::put('/user/tenants/{user}', [UserPaymentController::class, 'updateTenant']);
 Route::delete('/user/tenants/{user}', [UserPaymentController::class, 'deleteTenant']);
 Route::put('/user/tenants/holder/{user}', [UserPaymentController::class, 'updateAccountHolder']);
@@ -165,6 +202,7 @@ Route::get('/family-members/{family_id}', [UserController::class, 'getFamilyMemb
 Route::post('/update-account-holder', [UserPaymentController::class, 'updateAccountHolder']);
 
 
+Route::get('/blocks-lots', [ResidentController::class, 'getBlockAndLot']);
 
 
 Route::get('/{any}', function () {

@@ -9,7 +9,7 @@ const ViewAllNotifications = () => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5; // Number of notifications per page
+    const itemsPerPage = 10; // Number of notifications per page
 
     useEffect(() => {
         const fetchAllNotifications = async () => {
@@ -64,7 +64,7 @@ const ViewAllNotifications = () => {
                 >
                     <path d="M17.133 12.632v-1.8a5.406 5.406 0 0 0-4.154-5.262.955.955 0 0 0 .021-.106V3.1a1 1 0 0 0-2 0v2.364a.955.955 0 0 0 .021.106 5.406 5.406 0 0 0-4.154 5.262v1.8C6.867 15.018 5 15.614 5 16.807 5 17.4 5 18 5.538 18h12.924C19 18 19 17.4 19 16.807c0-1.193-1.867-1.789-1.867-4.175ZM8.823 19a3.453 3.453 0 0 0 6.354 0H8.823Z" />
                 </svg>
-                <span>All Notifications</span>
+                <span> Notifications</span>
             </h2>
 
             {loading ? (

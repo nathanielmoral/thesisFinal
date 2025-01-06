@@ -55,7 +55,8 @@ const UserSidebar = ({ user = {}, firstName = '', lastName = '', middleName = ''
         <h3 className="mt-2 text-xl font-bold">
           {capitalizeFirstLetter(firstName)} {capitalizeFirstLetter(middleName)} {capitalizeFirstLetter(lastName)}
         </h3>
-        <p className="text-sm text-gray-500">{role || 'User'}</p>
+        <p className="text-md text-gray-500">{role || 'User'}</p>
+        <p className="text-sm text-gray-500">Block {user.block} Lot {user.lot}</p>
       </div>
 
       <div className="flex flex-col space-y-4 items-start w-full">
@@ -71,6 +72,18 @@ const UserSidebar = ({ user = {}, firstName = '', lastName = '', middleName = ''
           <span className="text-base">Payments</span>
         </Link>
 
+        <Link
+          to="/profile/PaymentHistoryUser"
+          className={`flex items-center text-gray-700 px-4 py-2 w-full bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200 ${
+            isFirstLogin ? 'pointer-events-none opacity-50' : ''
+          }`}
+        >
+          <svg className="w-6 h-6 mr-3" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zM13 3v6h8V3h-8z" />
+          </svg>
+          <span className="text-base">Payments History</span>
+        </Link>
+
           {(user.role == 'Homeowner' && user.is_account_holder == 1) &&
             <Link
               to="/profile/tenants"
@@ -82,6 +95,26 @@ const UserSidebar = ({ user = {}, firstName = '', lastName = '', middleName = ''
               <span className="text-base ml-3">Tenants</span>
             </Link>
           }
+
+          {(user.role === 'Homeowner' && user.is_account_holder === 1) || 
+          (user.role === 'Renter' && user.is_account_holder === 1) ? (
+            <Link
+              to="/profile/membermanagement"
+              className={`flex items-center text-gray-700 px-4 py-2 w-full bg-gray-100 rounded-md hover:bg-gray-200 transition-colors duration-200 ${
+                isFirstLogin ? 'pointer-events-none opacity-50' : ''
+              }`}
+            >
+              <img
+                width="20"
+                height="20"
+                className="opacity-[.8]"
+                src="https://img.icons8.com/ios-glyphs/30/group.png"
+                alt="group"
+              />
+              <span className="text-base ml-3">Member Management</span>
+            </Link>
+          ) : null}
+
 
         <Link
           to="/profile/user-info"

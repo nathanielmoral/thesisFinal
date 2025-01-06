@@ -1,6 +1,5 @@
 import axiosInstance from '../axiosConfig';
 
-//Admin Dashboard
 export const fetchApprovedUsers = async (searchQuery) => {
   try {
       const response = await axiosInstance.get(`/users/approved`, {
@@ -165,6 +164,8 @@ export const fetchDetailsFamilyTenants = async (block, lot) => {
   }
 };
 
+
+
 // Update Account Holder
 export const setAccountHolder = async (familyId, userId, currentAccountHolder) => {
   try {
@@ -311,13 +312,22 @@ export const fetchAllResidents = async () => {
   }
 };
 
-export const fetchUserSchedules = async (userId) => {
-  try {
-    const response = await axiosInstance.get(`/payment-schedules/user/${userId}`);
-    console.log('User Schedules:', response.data);
-    return response.data; // Return the schedules
-  } catch (error) {
-    console.error('Error fetching user schedules:', error.response?.data || error.message);
-    alert('Failed to fetch user schedules: ' + (error.response?.data?.error || error.message));
+export const updateUserInfo = async (userId, email, contactNumber) => {
+  const response = await fetch(`/api/users/${userId}/update-info`, {
+      method: 'PUT',
+      headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ email, contact_number: contactNumber }),
+  });
+
+  // Check response status
+  if (!response.ok) {
+      const error = await response.json();
+      console.error('API Error:', error); // Log the error for debugging
+      throw new Error(error.message || 'Failed to update user info.');
   }
+
+  return await response.json(); // Return JSON response on success
 };

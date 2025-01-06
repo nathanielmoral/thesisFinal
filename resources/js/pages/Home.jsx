@@ -147,28 +147,26 @@ const HeroSection = ({ sliderImages, sliderOptions }) => (
         {/* Content Container */}
         <div className="relative z-10 flex flex-col md:flex-row items-center w-full max-w-7xl mx-auto space-y-6 md:space-y-0 md:space-x-10 p-4">
             
-            {/* Slider Section */}
-            <div className="flex-1 w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl">
-                <Slider {...sliderOptions}>
-                    {sliderImages.map((slide, index) => (
-                        <div
-                            key={index}
-                            className="h-40 sm:h-60 md:h-80 lg:h-96 bg-black/50 rounded-lg overflow-hidden relative"
-                            onClick={() => openModal(slide.src)}
-                        >
-                            <img
-                                src={`http://127.0.0.1:8000/storage/${slide.image_path}`}
-                                alt={`Slide ${index + 1}`}
-                                className="object-cover h-full w-full"
-                            />
-                            <div className="absolute bottom-0 inset-x-0 bg-black/50 p-5 flex flex-col gap-2">
-                                        <h5 className="capitalize text-gray-300 font-semibold text-xl">{slide.title}</h5>
-                                        <p className="capitalize text-gray-300 line-clamp-3">{slide.description}</p>
-                            </div>
-                        </div>
-                    ))}
-                </Slider>
-            </div>
+{/* Slider Section */}
+<div className="flex-1 w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl">
+  <Slider {...sliderOptions}>
+    {sliderImages.map((slide, index) => (
+      <div
+        key={index}
+        className="h-40 sm:h-60 md:h-80 lg:h-96 rounded-lg overflow-hidden relative"
+        onClick={() => openModal(slide.src)}
+      >
+        {/* Image */}
+        <img
+          src={`http://127.0.0.1:8000/storage/${slide.image_path}`}
+          alt={`Slide ${index + 1}`}
+          className="object-cover h-full w-full"
+        />
+      </div>
+    ))}
+  </Slider>
+</div>
+
 
             {/* Text Content */}
             <div className="flex-1 text-white text-center md:text-left px-4">

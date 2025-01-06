@@ -144,7 +144,7 @@ function Notifications({ isNotificationOpen, setIsNotificationOpen, setIsDropdow
             )}
 
             {selectedNotification && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ease-out">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300 ease-out p-4">
                     <div className="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full transform transition-transform duration-300 ease-out scale-95 sm:scale-100 sm:translate-y-0">
                         <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center space-x-1">

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\BlockAndLot;
 use App\Models\Family;
+use App\Models\Member;
 use App\Models\UserPayment;
 use App\Models\MonthlyPayment;
 use App\Mail\UserApprovedMail;
@@ -18,6 +19,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+
 
 
 class UserController extends Controller
@@ -62,28 +65,63 @@ public function approvedUsers(Request $request)
     }
 }
 
-// Function to fetch and filter approved users
 private function fetchFilteredApprovedUsers($search)
 {
-    $query = User::where('status', 'approved')->where('role', '!=', 'Administrator')->with('family');
+    // Query for members
+    $membersQuery = Member::query();
 
     if ($search) {
-        $query->where(function ($q) use ($search) {
-            $q->where('firstName', 'like', "%{$search}%")
-              ->orWhere('lastName', 'like', "%{$search}%")
-              ->orWhere('middleName', 'like', "%{$search}%");
+        $membersQuery->where(function ($q) use ($search) {
+            $q->where('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('middle_name', 'like', "%{$search}%");
         });
     }
 
-    return $query->orderBy('created_at', 'desc')->get();
+    // Include the related homeowner (user) for members
+    $members = $membersQuery->with('homeowner')->get();
+
+    // Query for users
+    $usersQuery = User::query()->where('role', '!=', 'Administrator');
+
+    if ($search) {
+        $usersQuery->where(function ($q) use ($search) {
+            // Replace `name` with the concatenation of `first_name` and `last_name`
+            $q->where(DB::raw("CONCAT(firstName, ' ', lastName)"), 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%");
+        });
+    }
+
+    // Fetch users
+    $users = $usersQuery->get();
+
+    // Combine the results from both queries
+    $combined = $members->merge($users);
+
+    // Sort the combined results by creation date (if applicable)
+    return $combined->sortByDesc(function ($item) {
+        return $item->created_at ?? now(); // Ensure created_at exists or fallback to current date
+    })->values();
 }
+
+
 
 // Function to group users by block and lot
 private function groupUsersByBlockAndLot($users)
 {
-    return $users->groupBy(function ($user) {
-        return $user->block . '-' . $user->lot;
-    });
+    $users = User::with('blocksAndLots')->get(); // Ensure relationship is loaded
+
+    return $users->flatMap(function ($user) {
+        return $user->blocksAndLots->map(function ($blockAndLot) use ($user) {
+            if ($blockAndLot->pivot) { // Check if pivot data exists
+                return [
+                    'block-lot' => $blockAndLot->pivot->block . '-' . $blockAndLot->pivot->lot,
+                    'user' => $user
+                ];
+            }
+            return null; // Skip if no pivot data
+        })->filter(); // Remove null entries
+    })->groupBy('block-lot');
 }
 
 // Function to assign Family ID and Account Holder
@@ -242,40 +280,62 @@ private function assignFamilyIdsAndAccountHolders($families)
     }
     
 
-    // Update an existing user
     public function update(Request $request, $userId)
     {
+        // Validate the input fields
         $validated = $request->validate([
             'firstName' => 'required|string|max:255',
             'middleName' => 'nullable|string|max:255',
             'lastName' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $userId,
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $userId,
             'role' => 'required|string|max:255',
             'userType' => 'required|string', // Validate userType as string
             'password' => 'nullable|string|min:8',
+            'contact_number' => 'required|string|max:15', // Validate Mobile Number
+            'block' => 'nullable|string|max:10', // Validate Block
+            'lot' => 'nullable|string|max:10', // Validate Lot
+            'gender' => 'nullable|string|max:10', // Validate Gender
+            'birthdate' => 'nullable|date', // Validate Birthdate for Age calculation
         ]);
-
+    
         try {
+            // Find the user by ID
             $user = User::findOrFail($userId);
+    
+            // Update the fields
             $user->firstName = $request->input('firstName');
             $user->middleName = $request->input('middleName');
             $user->lastName = $request->input('lastName');
             $user->email = $request->input('email');
             $user->role = $request->input('role');
             $user->userType = strtolower($request->input('userType')); // Ensure userType is lowercase
-
+            $user->contact_number = $request->input('contact_number'); // Update Mobile Number
+            $user->block = $request->input('block'); // Update Block
+            $user->lot = $request->input('lot'); // Update Lot
+            $user->gender = $request->input('gender'); // Update Gender
+    
+            // If birthdate is provided, update it for age calculation
+            if ($request->has('birthdate')) {
+                $user->birthdate = $request->input('birthdate');
+            }
+    
+            // Update password if provided
             if ($request->input('password')) {
                 $user->password = bcrypt($request->input('password'));
             }
-
+    
+            // Save the updated user details
             $user->save();
-
+    
+            // Return the updated user data as response
             return response()->json($user);
         } catch (\Exception $e) {
+            // Log error and return a response in case of failure
             Log::error('Error updating user: ' . $e->getMessage(), ['exception' => $e, 'userId' => $userId]);
             return response()->json(['error' => 'Failed to update user'], 500);
         }
     }
+    
 
 
     public function delete($userId)
@@ -283,77 +343,82 @@ private function assignFamilyIdsAndAccountHolders($families)
         try {
             // Find the user
             $user = User::findOrFail($userId);
-
     
             // Get all blocks and lots associated with the user
             $blockAndLots = $user->blockAndLots;
             $userBlock = $user->block;
             $userLot = $user->lot;
-            $family = \App\Models\Family::where('block', $user->block)->where('lot', $user->lot)->first();
-
-
+            $family = \App\Models\Family::where('block', $userBlock)->where('lot', $userLot)->first();
+    
             $remainingFamilyMembers = User::where('family_id', $user->family_id)
-                    ->where('id', '!=', $user->id) // Exclude ang dine-delete na user
-                    ->get();
-
+                ->where('id', '!=', $user->id) // Exclude ang dine-delete na user
+                ->get();
+    
             $userBlockLot = BlockAndLot::where('block', $userBlock)
                                         ->where('lot', $userLot)
                                         ->first();
-
-            if($remainingFamilyMembers->isNotEmpty()) {
+    
+            if ($remainingFamilyMembers->isNotEmpty()) {
                 $otherFamilyMember = $remainingFamilyMembers->first();
-
-                $userBlockLot->user_id = $otherFamilyMember->id;
-                $userBlockLot->save();
-
-                if($user->is_account_holder == 1) {
+    
+                if ($userBlockLot) {
+                    $userBlockLot->user_id = $otherFamilyMember->id;
+                    $userBlockLot->save();
+                }
+    
+                if ($user->is_account_holder == 1) {
                     $otherFamilyMember->is_account_holder = 1;
                     $otherFamilyMember->save();
     
                     $userPayments = UserPayment::where('user_id', $user->id)->get();
-                    if($userPayments) {
+                    if ($userPayments) {
                         foreach ($userPayments as $userPayment) {
-                        $userPayment->user_id = $otherFamilyMember->id;
-                        $userPayment->save();
+                            $userPayment->user_id = $otherFamilyMember->id;
+                            $userPayment->save();
                         }
                     }
-                    
+    
                     $monthlyPayments = MonthlyPayment::where('user_id', $user->id)->get();
-                    if($monthlyPayments) {
+                    if ($monthlyPayments) {
                         foreach ($monthlyPayments as $monthlyPayment) {
-                        $monthlyPayment->user_id = $otherFamilyMember->id;
-                        $monthlyPayment->save();
+                            $monthlyPayment->user_id = $otherFamilyMember->id;
+                            $monthlyPayment->save();
                         }
                     }
-
-                    
-                    if($family) {
+    
+                    if ($family) {
                         $family->account_holder_id = $otherFamilyMember->id;
                         $family->save();
                     }
                 }
             } else {
-                if($family) {
+                if ($family) {
                     $family->delete();
                 }
-                $userBlockLot->user_id = null;
-                $userBlockLot->status = 'Unoccupied';
-                $userBlockLot->save();
+    
+                if ($userBlockLot) {
+                    $userBlockLot->user_id = null;
+                    $userBlockLot->status = 'Unoccupied';
+                    $userBlockLot->save();
+                }
             }
-            
-            
-            Mail::to($user->email)->send(new \App\Mail\UserDeletedNotification($user));
     
-            // I-preserve ang payment records sa pamamagitan ng pag-clear ng user reference
-            // MonthlyPayment::where('user_id', $user->id)->update(['user_id' => null]);
+            // Send email notification only if the user has an email
+            if ($user->email) {
+                try {
+                    Mail::to($user->email)->send(new \App\Mail\UserDeletedNotification($user));
+                } catch (\Exception $e) {
+                    // Log any email sending errors
+                    Log::error('Error sending email to user: ' . $e->getMessage());
+                }
+            }
     
-            // I-delete ang user
+            // Delete the user
             $user->delete();
     
             return response()->json([
-                'message' => 'User deleted successfully, email sent, and associated blocks updated. All payments are preserved.',
+                'message' => 'User deleted successfully. Associated blocks updated, and email notification sent if applicable.',
             ]);
-
         } catch (\Exception $e) {
             // Log the error for debugging
             Log::error('Error deleting user: ' . $e->getMessage(), ['exception' => $e, 'userId' => $userId]);
@@ -361,7 +426,6 @@ private function assignFamilyIdsAndAccountHolders($families)
             return response()->json(['error' => 'Failed to delete user'], 500);
         }
     }
-    
     
     
     
@@ -407,17 +471,33 @@ private function assignFamilyIdsAndAccountHolders($families)
         }
     }
     
-                    
+
+
     // Get approved users count by gender
     public function getApprovedUsersCountByGender()
     {
         try {
             $maleCount = User::where('status', 'approved')->where('gender', 'Male')->count();
             $femaleCount = User::where('status', 'approved')->where('gender', 'Female')->count();
+
+
+             // Count genders in the members table
+             $maleMembers = Member::where('gender', 'Male')->count();
+             $femaleMembers = Member::where('gender', 'Female')->count();
+
+              // Combine counts
+            $totalMaleCount = $maleCount + $maleMembers;
+            $totalFemaleCount = $femaleCount + $femaleMembers;
     
             return response()->json([
-                'male' => $maleCount,
-                'female' => $femaleCount,
+                'users' => [
+                    'male' => $maleCount,
+                    'female' => $femaleCount,
+                ],
+                'members' => [
+                    'male' => $maleMembers,
+                    'female' => $femaleMembers,
+                ],
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -426,6 +506,10 @@ private function assignFamilyIdsAndAccountHolders($families)
             ], 500);
         }
     }
+
+  
+    
+
     private function assignFamilyIdToUser($user)
 {
     // Find or create a family based on block and lot
@@ -568,6 +652,32 @@ public function ChangePassword(Request $request)
     public function enableSpamNotifications() {
         
     }
+
+    public function updateInfo(Request $request, $userId)
+{
+    try {
+        $user = User::findOrFail($userId);
+
+        $validated = $request->validate([
+            'email' => 'required|email|unique:users,email,' . $userId,
+            'contact_number' => 'required|regex:/^[0-9]{10,11}$/',
+        ]);
+
+        $user->update($validated);
+
+        // Return proper success response
+        return response()->json([
+            'message' => 'User information updated successfully.',
+            'user' => $user,
+        ], 200); // Ensure 200 OK status
+    } catch (\Exception $e) {
+        // Return error response
+        return response()->json([
+            'message' => 'Failed to update user information.',
+            'error' => $e->getMessage(),
+        ], 500); // Return 500 status on failure
+    }
+}
 
     
 }

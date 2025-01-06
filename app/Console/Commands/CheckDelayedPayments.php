@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\{UserPayment,Notification};
+use App\Models\{UserPayment,Notification,BlockLotFee};
 use App\Events\UserNotification; // Import the event class
 
 class CheckDelayedPayments extends Command
@@ -27,7 +27,7 @@ class CheckDelayedPayments extends Command
      */
     public function handle()
     {
-        $delayedPayments = UserPayment::getDelayedAllPayments();
+        $delayedPayments = BlockLotFee::getDelayedAllPayments();
 
         $notifications = [];
 

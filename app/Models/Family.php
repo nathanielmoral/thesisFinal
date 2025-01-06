@@ -23,6 +23,11 @@ class Family extends Model
         return $this->hasMany(User::class, 'family_id')->where('role', '!=', 'Renter');
     }
 
+    public function userBlockLots()
+    {
+        return $this->hasMany(UserBlockLot::class, ['block', 'lot'], ['block', 'lot']);
+    }
+
     // Relationship with User model for members
     public function tenants()
     {
@@ -37,8 +42,7 @@ class Family extends Model
     // Relasyon sa BlockAndLots (kung bawat pamilya ay konektado sa blocks)
     public function blockAndLots()
     {
-        return $this->hasMany(BlockAndLots::class, 'family_id', 'id');
+        return $this->hasMany(BlockAndLot::class, 'family_id', 'id');
     }
-    
 
 }

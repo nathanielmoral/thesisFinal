@@ -5,16 +5,20 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import { getBreadcrumbs } from '../helpers/breadcrumbsHelper';
 import {FaEye } from 'react-icons/fa';
 import BeatLoader from 'react-spinners/BeatLoader';
-import axios from 'axios';
+import axios from "axios";
+
 
 const HouseList = () => {
   const [approvedUsers, setApprovedUsers] = useState([]);
   const [filteredFamilies, setFilteredFamilies] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterBlock, setFilterBlock] = useState('');
+  const [filterLot, setFilterLot] = useState('');
+  const [blocks, setBlocks] = useState([]);
+  const [lots, setLots] = useState([]);
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [paymentStatuses, setPaymentStatuses] = useState({});
   const location = useLocation();
   const crumbs = getBreadcrumbs(location);
   const navigate = useNavigate();
@@ -23,15 +27,16 @@ const HouseList = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const users = await fetchApprovedUsers();
-        const groupedUsers = groupByBlockAndLot(users);
-        const familiesWithAccountHolders = mapFamilies(groupedUsers);
+        const users = await fetchApprovedUsers(); // Fetch data
+        const groupedUsers = groupByBlockAndLot(users); // Process data
+        setApprovedUsers(groupedUsers);
+        setFilteredFamilies(groupedUsers);
 
-        setApprovedUsers(familiesWithAccountHolders);
-        setFilteredFamilies(familiesWithAccountHolders);
-
-        const statuses = await fetchPaymentStatuses(familiesWithAccountHolders);
-        setPaymentStatuses(statuses);
+        // Extract unique blocks and lots for filters
+        const uniqueBlocks = [...new Set(groupedUsers.map((family) => family.block))];
+        const uniqueLots = [...new Set(groupedUsers.map((family) => family.lot))];
+        setBlocks(uniqueBlocks);
+        setLots(uniqueLots);
       } catch (error) {
         console.error('Error fetching approved users:', error);
       } finally {
@@ -42,55 +47,58 @@ const HouseList = () => {
     fetchUsers();
   }, []);
 
-  const fetchPaymentStatuses = async (families) => {
-    try {
-      const response = await axios.post('/api/fetch-payment-statuses', {
-        families: families.map((family) => ({
-          block: family.block,
-          lot: family.lot,
-        })),
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching payment statuses:', error);
-      return {};
-    }
-  };
 
   const groupByBlockAndLot = (users) => {
-    const grouped = users.reduce((acc, user) => {
-      const key = `${user.block}-${user.lot}`;
+    const grouped = users.flatMap((user) => {
+      // Split blocks and lots into arrays (assuming they are comma-separated strings)
+      const blocks = user.block.split(',').map((b) => b.trim());
+      const lots = user.lot.split(',').map((l) => l.trim());
+  
+      // Map each block-lot pair into its own entry
+      return blocks.map((block, index) => ({
+        block: block,
+        lot: lots[index] || 'N/A', // If no matching lot exists, use 'N/A'
+        accountHolder: user.is_account_holder ? user : null,
+        members: [user], // Start with the user as the first member
+      }));
+    });
+  
+    // Reduce to group by block-lot pair
+    const groupedByKey = grouped.reduce((acc, entry) => {
+      const key = `${entry.block}-${entry.lot}`;
       if (!acc[key]) {
         acc[key] = {
-          block: user.block,
-          lot: user.lot,
-          accountHolder: null,
+          block: entry.block,
+          lot: entry.lot,
+          accountHolder: entry.accountHolder,
           members: [],
         };
       }
-      acc[key].members.push(user);
-      if (user.is_account_holder === 1) {
-        acc[key].accountHolder = user;
+      acc[key].members.push(...entry.members);
+      if (entry.accountHolder) {
+        acc[key].accountHolder = entry.accountHolder;
       }
       return acc;
     }, {});
-
-    Object.values(grouped).forEach((family) => {
+  
+    // Ensure each group has an account holder
+    Object.values(groupedByKey).forEach((family) => {
       if (!family.accountHolder) {
         family.accountHolder = family.members[0];
       }
     });
-
-    return Object.values(grouped).sort((a, b) => {
-      const blockA = parseInt(a.block);
-      const blockB = parseInt(b.block);
-      const lotA = parseInt(a.lot);
-      const lotB = parseInt(b.lot);
-
+  
+    // Convert to array and sort by block and lot
+    return Object.values(groupedByKey).sort((a, b) => {
+      const blockA = parseInt(a.block, 10);
+      const blockB = parseInt(b.block, 10);
+      const lotA = parseInt(a.lot, 10);
+      const lotB = parseInt(b.lot, 10);
+  
       return blockA !== blockB ? blockA - blockB : lotA - lotB;
     });
   };
-
+  
   const mapFamilies = (families) => {
     return families.map((family) => ({
       ...family,
@@ -107,17 +115,17 @@ const HouseList = () => {
   };
 
   useEffect(() => {
-    if (searchQuery) {
-      const filtered = approvedUsers.filter((family) =>
-        `${family.accountHolder ? family.accountHolder.firstName : ''} ${family.accountHolder ? family.accountHolder.lastName : ''}`
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      );
-      setFilteredFamilies(filtered);
-    } else {
-      setFilteredFamilies(approvedUsers);
-    }
-  }, [searchQuery, approvedUsers]);
+    const filtered = approvedUsers.filter((family) => {
+      const matchesSearch = `${family.accountHolder ? family.accountHolder.firstName : ''} ${family.accountHolder ? family.accountHolder.lastName : ''}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesBlock = !filterBlock || family.block === filterBlock;
+      const matchesLot = !filterLot || family.lot === filterLot;
+
+      return matchesSearch && matchesBlock && matchesLot;
+    });
+    setFilteredFamilies(filtered);
+  }, [searchQuery, filterBlock, filterLot, approvedUsers]);
 
   const handleEntriesPerPageChange = (event) => {
     setEntriesPerPage(Number(event.target.value));
@@ -193,6 +201,32 @@ const HouseList = () => {
               </select>
               <span className="ml-2">entries</span>
             </div>
+            <div>
+            <select
+              value={filterBlock}
+              onChange={(e) => setFilterBlock(e.target.value)}
+              className="form-select border border-gray-300 rounded mr-2"
+            >
+              <option value="">All Blocks</option>
+              {blocks.map((block) => (
+                <option key={block} value={block}>
+                  Block {block}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filterLot}
+              onChange={(e) => setFilterLot(e.target.value)}
+              className="form-select border border-gray-300 rounded"
+            >
+              <option value="">All Lots</option>
+              {lots.map((lot) => (
+                <option key={lot} value={lot}>
+                  Lot {lot}
+                </option>
+              ))}
+            </select>
+          </div>
           </div>
         </div>
       </div>
@@ -201,27 +235,27 @@ const HouseList = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Holder</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Block</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Members</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Account Holder</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Block</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Lot</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Members</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {currentFamilies.map((family, index) => (
+            {currentFamilies.map((families, index) => (
               <tr key={index}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                {family.accountHolder ? capitalizeFirstLetter(`${family.accountHolder.firstName} ${family.accountHolder.lastName}`) : 'No Account Holder'}
+                <td className="px-6 py-4 text-center whitespace-nowrap">
+                {families.accountHolder ? capitalizeFirstLetter(`${families.accountHolder.firstName} ${families.accountHolder.lastName}`) : 'No Account Holder'}
 
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">{family.block}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{family.lot}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{family.members.length}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 text-center whitespace-nowrap">{families.block}</td>
+                <td className="px-6 py-4 text-center whitespace-nowrap">{families.lot}</td>
+                <td className="px-6 py-4 text-center whitespace-nowrap">{families.members.length}</td>
+                <td className="px-6 py-4 text-center whitespace-nowrap">
                   <button
                     className="bg-green-700 text-white px-2 py-1 rounded hover:bg-green-800 text-xs sm:text-base flex items-center"
-                    onClick={() => handleViewFamily(family)}
+                    onClick={() => handleViewFamily(families)}
                   >
                     <FaEye className="mr-1" /> 
                     View

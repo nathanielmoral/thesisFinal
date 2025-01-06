@@ -256,7 +256,7 @@ function AdminGallery() {
                 {/* Modal Header */}
                 <div className="relative mb-5">
                     <h3 className="text-lg sm:text-xl font-semibold text-gray-900 text-center">
-                    {isEditing ? 'Edit Image' : 'Add Announcement'}
+                    {isEditing ? 'Edit Image' : 'Add Image'}
                     </h3>
                     <button
                     onClick={closeModal}

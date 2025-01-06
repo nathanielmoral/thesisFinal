@@ -4,6 +4,7 @@ import { useNavbarState } from './useNavbarState';
 import { handleLogout, capitalizeFirstLetter, toggleDropdown } from './navbarUtils';
 import Notifications from './Notifications';
 import { getprofilephoto } from '../../api/user';
+import { MdHome, MdAnnouncement, MdPhotoLibrary, MdInfo, MdContactPhone } from 'react-icons/md'; // Import icons
 import { MdArrowDropDown } from 'react-icons/md';
 
 function Navbar({ missionRef, visionRef, boardRef }) {
@@ -306,64 +307,77 @@ function Navbar({ missionRef, visionRef, boardRef }) {
       </div>
 
       {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden flex flex-col space-y-2 mt-4 justify-start items-start">
-          {['/home', '/announcement', '/gallery', '/about', '/contactus'].map((path) => (
+{/* Mobile Menu */}
+{isMenuOpen && (
+  <div className="md:hidden flex flex-col mt-4 space-y-4">
+    {/* Navigation Links */}
+    <div className="flex flex-col space-y-3">
+      {[
+        { path: '/home', label: 'Home', Icon: MdHome },
+        { path: '/announcement', label: 'Announcement', Icon: MdAnnouncement },
+        { path: '/gallery', label: 'Gallery', Icon: MdPhotoLibrary },
+        { path: '/about', label: 'About', Icon: MdInfo },
+        { path: '/contactus', label: 'Contact Us', Icon: MdContactPhone },
+      ].map(({ path, label, Icon }) => (
+        <Link
+          key={path}
+          to={path}
+          className={`flex items-center gap-3 text-sm font-medium px-3 py-2 rounded-md transition-colors ${
+            location.pathname === path
+              ? 'bg-gray-200 text-gray-900'
+              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+          }`}
+        >
+          <Icon className="w-5 h-5" /> {/* Icon */}
+          {label}
+        </Link>
+      ))}
+    </div>
+
+    {/* Login Links */}
+    {!isLoggedIn && (
+      <div className="flex flex-col space-y-2">
+        <Link
+          to="/login"
+          className="flex items-center gap-3 text-sm font-medium px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+        >
+          <MdHome className="w-5 h-5" /> Login
+        </Link>
+      </div>
+    )}
+
+    {/* User Profile Links */}
+    {isLoggedIn && user && (
+      <div className="relative">
+        <button
+          onClick={() => toggleDropdown(isDropdownOpen, setIsDropdownOpen, setIsNotificationOpen)}
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+        >
+          <MdHome className="w-5 h-5" /> Profile
+          <MdArrowDropDown className="ml-2 w-5 h-5" />
+        </button>
+        {isDropdownOpen && (
+          <div className="absolute mt-2 w-40 bg-white shadow-md rounded-md py-2">
             <Link
-              key={path}
-              to={path}
-              className={`text-sm font-medium text-[#333333] hover:text-[#444444] ${
-                location.pathname === path ? 'text-[#444444]' : ''
-              }`}
+              to="/profile"
+              className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
-              {path === '/home' ? 'Home' : path.slice(1).charAt(0).toUpperCase() + path.slice(2)}
+              My Profile
             </Link>
-          ))}
-          {!isLoggedIn && (
-            <div className="flex flex-col space-y-2 items-start">
-              <Link to="/login" className="text-sm font-medium text-gray-700 hover:text-gray-300">
-                Login
-              </Link>
-              {/* <Link to="/registration" className="text-sm font-medium text-gray-700 hover:text-gray-300">
-                Register
-              </Link> */}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* User Menu for Mobile */}
-      {isMenuOpen && isLoggedIn && user && (
-        <div className="md:hidden mt-4 flex justify-start relative">
-          <div className="flex flex-col items-start">
             <button
-              onClick={() => toggleDropdown(isDropdownOpen, setIsDropdownOpen, setIsNotificationOpen)}
-              className="flex items-center text-sm font-medium text-black"
+              onClick={() => handleLogout(setIsLoggedIn, setUser, navigate)}
+              className="w-full text-left block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
             >
-              <span className="sr-only">Open user menu</span>
-              <span className="text-sm font-medium">Profile</span>
-              <MdArrowDropDown className="ml-2 w-5 h-5" />
+              Logout
             </button>
-
-            {isDropdownOpen && (
-              <div className="relative mt-1">
-                <Link
-                  to="/profile"
-                  className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                >
-                  My Profile
-                </Link>
-                <button
-                  onClick={() => handleLogout(setIsLoggedIn, setUser, navigate)}
-                  className="w-full text-left block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+    )}
+  </div>
+)}
+
+
     </nav>
   );
 }

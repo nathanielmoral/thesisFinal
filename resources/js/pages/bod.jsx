@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../axiosConfig';
 import {useLocation } from 'react-router-dom';
+import Select from "react-select";
 import { addBoardMember, updateBoardMember, deleteBoardMember } from '../api/user';
 import AddModalBoardDirectors from './modals/AddModalBoardDirectors';
 import UserListModalBod from './modals/UserListModalBod';

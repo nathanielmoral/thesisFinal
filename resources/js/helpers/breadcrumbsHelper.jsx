@@ -11,7 +11,7 @@ const hierarchyMap = {
   'profile': ['admin-dashboard'],
   'create-notification': ['admin-dashboard', 'Notifications'],
   'houselist': ['admin-dashboard', 'settings'],
-  'family-details': ['admin-dashboard'],
+  'family-details': ['admin-dashboard', 'settings'],
   'MyProfile':['admin-dashboard', 'MyProfile'],
   'admin-info': ['admin-dashboard', 'MyProfile',],
   'admin-gallery': ['admin-dashboard'],
@@ -22,6 +22,7 @@ const hierarchyMap = {
   'AdminPaymentApproved': ['admin-dashboard'],
   'AdminPaymentDelayed': ['admin-dashboard'],
   'AdminPaymentProcess': ['admin-dashboard'],
+  'AdminPaymentRejected': ['admin-dashboard'],
 };
 
 const pathToNameMap = {
@@ -41,10 +42,10 @@ const pathToNameMap = {
   'admin-gallery': 'Admin Gallery',
   'residentrecords': 'Resident Records',
   'AdminBlockAndLots': 'Blocks & Lots',
-  'AdminPaymentApproved': 'Approved Payments',
+  'AdminPaymentApproved': 'Payments',
   'AdminSettings': 'Payment Settings',
+  'Feedback': 'Messages',
   'AdminPaymentDelayed': 'Delayed Payments',
-  'AdminPaymentProcess': 'Pending Payments',
 };
 
 export const getBreadcrumbs = (location) => {

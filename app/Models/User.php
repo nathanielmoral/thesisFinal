@@ -30,7 +30,9 @@ class User extends Authenticatable
         'proofOfResidency',
         'gender',
         'email',
+        'birthdate',
         'username',
+        'account_number',
         'role',
         'nameOfOwner',
         'usertype',
@@ -50,6 +52,11 @@ class User extends Authenticatable
     public function userPayments()
     {
         return $this->hasMany(UserPayment::class);
+    }
+
+    public function getAgeAttribute()
+    {
+        return $this->birthdate ? Carbon::parse($this->birthdate)->age : null;
     }
 
     /**
@@ -90,9 +97,9 @@ class User extends Authenticatable
 
     public function family()
     {
-        return $this->hasOne(Family::class, 'id', 'family_id');
+        return $this->belongsTo(Family::class, 'id', 'family_id');
     }
-    
+  
 
     public function assignFamilyId()
     {
@@ -107,18 +114,56 @@ class User extends Authenticatable
         $this->save();
     }
 
-public function isAdmin()
-{
-    return $this->role === 'admin';
-}
-public function block()
-{
-    return $this->hasOne(BlockAndLot::class);
-}
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+    public function block()
+    {
+        return $this->hasOne(BlockAndLot::class);
+    }
     // Relasyon sa BlockAndLots
     public function blockAndLots()
     {
         return $this->hasMany(BlockAndLot::class, 'user_id', 'id');
     }
+
+    public function blocksAndLots()
+    {
+        return $this->hasMany(UserBlockLot::class);
+    }
+
+    public function blockAndLot()
+    {
+        return $this->belongsTo(BlockAndLot::class, 'block_lot_id');
+    }
+     // One-to-Many relationship to UserBlockLot
+     public function userBlockLots()
+     {
+         return $this->hasMany(UserBlockLot::class, 'user_id');
+     }
+     
+     public function blockLotFees()
+     {
+         return $this->hasMany(BlockLotFee::class, 'account_holder_id'); // Replace 'account_holder_id' with the correct foreign key if different
+     }
+
+            // Relationship with MonthlyPayment
+            public function payment()
+            {
+                return $this->hasMany(MonthlyPayment::class, 'user_id');
+            }
+
+            // Relationship with other family members
+            public function familyMembers()
+            {
+                return $this->hasMany(User::class, 'family_id', 'family_id');
+            }
+                
+            public function ownedBlocksLots()
+            {
+                return $this->hasMany(BlockAndLot::class, 'user_id');
+            }
+            
 
 }
