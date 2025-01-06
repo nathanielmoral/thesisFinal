@@ -8,6 +8,7 @@ export default defineConfig({
             input: [
                 'resources/js/app.jsx',
                 'resources/js/NewApp.jsx',
+                'resources/js/index.jsx',
                 'resources/css/app.css',
                 'resources/css/styles.css',
                 'resources/css/scroll.css',

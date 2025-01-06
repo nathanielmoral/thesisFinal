@@ -6,7 +6,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>BHHAI</title>
     @viteReactRefresh
-    @vite(['resources/js/app.jsx','resources/js/index.jsx', 'resources/css/app.css'])
+    @vite([
+                'resources/js/app.jsx',
+                'resources/js/NewApp.jsx',
+                'resources/js/index.jsx',
+                'resources/css/app.css',
+                'resources/css/styles.css',
+                'resources/css/scroll.css'])
 </head>
 <body>
     <div id="root"></div>
